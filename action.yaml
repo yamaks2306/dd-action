@@ -1,0 +1,63 @@
+name: 'dd-action'
+description: 'Uploading security report to DefectDojo '
+author: 'yamaks2306'
+
+inputs:
+  mode:
+    description: 'init or upload_report'
+    required: true
+  url:
+    description: 'DefectDojo URL'
+    required: true
+  token:
+    description: "DefectDojo token"
+    required: true
+  product_type:
+    description: "DefectDojo product type (for examole, project name)"
+  product:
+    description: "DefectDojo product, default - repository name"
+    default: ${{ github.repository }}
+  product_description:
+    description: "DefectDojo product description, default - github repo url"
+    default: ${{ github.repositoryUrl }}
+  engagement_type: 
+    description: "DefectDojo Engagement type"
+    default: "CI/CD"
+
+outputs:
+  engagement_id:
+    description: "DefectDojo Engagement id"
+    value: ${{ steps.dd-action.outputs.ENGAGEMENT_ID }}
+
+  product_id: 
+    description: 'DefectDojo Product id' 
+    value: ${{ steps.dd-action.outputs.PRODUCT_ID }}
+
+  product_type_id: 
+    description: 'DefectDojo Product type id'
+    value: ${{ steps.dd-action.outputs.PRODUCT_TYPE_ID }}
+
+runs:
+  using: 'composite'
+  steps:
+
+    - shell: bash
+      id: dd-action
+      run: python3 ${{ github.action_path }}/main.py
+      env:
+        MODE: ${{ inputs.mode }}
+        DD_URL: ${{ inputs.url }}
+        DD_TOKEN: ${{ inputs.token }}
+        GITHUB_RUN_ID: ${{ github.run_id}}
+        GITHUB_SHA: ${{ github.sha }}
+        PRODUCT_TYPE: ${{ inputs.product_type }}
+        PRODUCT: ${{ inputs.product }}
+        PRODUCT_DESCRIPTION: ${{inputs.product_description }}
+        GITHUB_WORKFLOW: ${{ github.workflow }}
+        GITHUB_REF_NAME: ${{ github.ref_name }}
+        GITHUB_REPOSITORY: 'https://github.com/${{ github.repository }}'
+        ENGAGEMENT_TYPE: ${{ inputs.engagement_type }}
+
+branding:
+  icon: 'send'
+  color: 'blue'
