@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 from requests import Session
-import subprocess
+import requests
 from mode import mode
 
 
@@ -25,6 +25,22 @@ assert BUILD_ID is not None and BUILD_ID != "", \
 COMMIT_HASH = os.getenv('GITHUB_SHA')
 assert COMMIT_HASH is not None and COMMIT_HASH != "", \
     f'The COMMIT_HASH must be not empty and not None\nGot COMMIT_HASH: {COMMIT_HASH}'
+
+SCAN_TYPE = os.getenv('SCAN_TYPE')
+
+ENGAGEMENT_ID = os.getenv('ENGAGEMENT_ID')
+
+TEST_TITLE = os.getenv('TEST_TITLE')
+
+ACTIVE = os.getenv('ACTIVE')
+
+VERIFIED = os.getenv('VERIFIED')
+
+CLOSE_OLD_FINDINGS = os.getenv('CLOSE_OLD_FINDINGS')
+
+DEDUPLICATION_ON_ENGAGEMENT = os.getenv('DEDUPLICATION_ON_ENGAGEMENT')
+
+FILE = os.getenv('FILE')
 
 PRODUCT_TYPE = os.getenv('PRODUCT_TYPE')
 
@@ -143,6 +159,88 @@ def create_engagement(
     return responce.json()['id']
 
 
+def upload_scan(
+    file: str,
+    main_url: str,
+    scan_type: str,
+    engagement_id: int,
+    test_title: str,
+    active: bool,
+    verified: bool,
+    close_old_findings: bool,
+    deduplication_on_engagement: bool,
+    build_id: str,
+    commit_hash: str,
+    date: str
+):
+    url = main_url + '/api/v2/import-scan/'
+
+    payload = {
+        'scan_type': scan_type,
+        'engagement': engagement_id,
+        'test_title': test_title,
+        'active': active,
+        'verified': verified,
+        'close_old_findings': close_old_findings,
+        'deduplication_on_engagement': deduplication_on_engagement,
+        'build_id': build_id,
+        'commit_hash': commit_hash,
+        'scan_date': date
+    }
+
+    files = [
+        ('file', (file, open(file, 'rb')))
+    ]
+
+    headers = {
+        'Accept': 'application/json',
+        'Authorization': 'Token ' + TOKEN
+    }
+
+    responce = requests.post(url, headers=headers, data=payload, files=files)
+
+    print(responce.text)
+
+
+def check_upload_report_environment():
+    assert SCAN_TYPE is not None and SCAN_TYPE != "", \
+        f'The SCAN_TYPE must be not empty and not None\nGot SCAN_TYPE: {SCAN_TYPE}'
+    assert ENGAGEMENT_ID is not None and ENGAGEMENT_ID != "", \
+        f'The ENGAGEMENT_ID must be not empty and not None\nGot ENGAGEMENT_ID: {ENGAGEMENT_ID}'
+    assert TEST_TITLE is not None and TEST_TITLE != "", \
+        f'The TEST_TITLE must be not empty and not None\nGot TEST_TITLE: {TEST_TITLE}'
+    assert ACTIVE is not None and ACTIVE != "", \
+        f'The ACTIVE must be not empty and not None\nGot ACTIVE: {ACTIVE}'
+    assert VERIFIED is not None and VERIFIED != "", \
+        f'The VERIFIED must be not empty and not None\nGot VERIFIED: {VERIFIED}'
+    assert CLOSE_OLD_FINDINGS is not None and CLOSE_OLD_FINDINGS != "", \
+        f'The CLOSE_OLD_FINDINGS must be not empty and not None\nGot CLOSE_OLD_FINDINGS: {CLOSE_OLD_FINDINGS}'
+    assert DEDUPLICATION_ON_ENGAGEMENT is not None and DEDUPLICATION_ON_ENGAGEMENT != "", \
+        f'The DEDUPLICATION_ON_ENGAGEMENT must be not empty and not None\nGot DEDUPLICATION_ON_ENGAGEMENT: {DEDUPLICATION_ON_ENGAGEMENT}'
+    assert FILE is not None and FILE != "", \
+        f'The FILE must be not empty and not None\nGot FILE: {FILE}'
+
+
+
+def upload_report():
+    check_upload_report_environment()
+
+    upload_scan(
+        FILE,  # type: ignore
+        MAIN_URL,
+        SCAN_TYPE,  # type: ignore
+        ENGAGEMENT_ID,  # type: ignore
+        TEST_TITLE,  # type: ignore
+        ACTIVE,  # type: ignore
+        VERIFIED, # type: ignore
+        CLOSE_OLD_FINDINGS, # type: ignore
+        DEDUPLICATION_ON_ENGAGEMENT, # type: ignore
+        BUILD_ID,
+        COMMIT_HASH,
+        CURRENT_DATE
+    )
+
+
 def check_init_environment():
     assert PRODUCT_TYPE is not None and PRODUCT_TYPE != "", \
         f'The PRODUCT_TYPE must be not empty and not None\nGot PRODUCT_TYPE: {PRODUCT_TYPE}'
@@ -194,8 +292,10 @@ def init():
 
 def main():
 
-    if MODE == 'init':
+    if MODE == mode[0]:
         init()
+    if MODE == mode[1]:
+        upload_report()
 
 
 if __name__ == '__main__':

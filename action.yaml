@@ -23,6 +23,27 @@ inputs:
   engagement_type: 
     description: "DefectDojo Engagement type"
     default: "CI/CD"
+  scan_type: 
+    description: "Scan type format, default - SARIF"
+    default: "SARIF"
+  engagement_id:
+    description: "Engagement id from init mode"
+  test_title:
+    description: "Type of test, for example - image, config or code"
+  active:
+    description: "Finding state, default - true"
+    default: "True"
+  verified:
+    description: "Finding acception, default - false"
+    default: "False"
+  close_old_findings:
+    description: "Close or not old findings, default - true"
+    default: "True"
+  deduplication_on_engagement:
+    description: "Default True"
+    default: "True"
+  file:
+    description: "File to upload"
 
 outputs:
   engagement_id:
@@ -57,6 +78,14 @@ runs:
         GITHUB_REF_NAME: ${{ github.ref_name }}
         GITHUB_REPOSITORY: 'https://github.com/${{ github.repository }}'
         ENGAGEMENT_TYPE: ${{ inputs.engagement_type }}
+        SCAN_TYPE: ${{ inputs.scan_type }}
+        ENGAGEMENT_ID: ${{ inputs.engagement_id}}
+        TEST_TITLE: ${{ inputs.test_title }}
+        ACTIVE: ${{ inputs.active }}
+        VERIFIED: ${{ inputs.verified }}
+        CLOSE_OLD_FINDINGS: ${{ inputs.close_old_findings }}
+        DEDUPLICATION_ON_ENGAGEMENT: ${{ inputs.deduplication_on_engagement }}
+        FILE: ${{ inputs.file }}
 
 branding:
   icon: 'send'
